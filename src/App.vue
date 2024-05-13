@@ -52,7 +52,7 @@ const el = ref(null);
 const nexPageDragging = ref(null);
 
 const firstRow = ref(0);
-const rowsOnPage = ref(2);
+const rowsOnPage = ref(3);
 
 const imagesOnPage = ref(
   images.value.slice(firstRow.value, firstRow.value + rowsOnPage.value)
@@ -70,7 +70,7 @@ const changeOrd = () => {
 const onMove = (moveEvent) => {
   if (
     moveEvent.related.dataset.datasetAction === "nextPage" &&
-    firstRow.value + rowsOnPage.value + 1 < images.value.length
+    firstRow.value + rowsOnPage.value < images.value.length
   ) {
     const targetImgId = moveEvent.dragged.dataset.datasetId;
     const targetImgIndex = images.value.findIndex(
