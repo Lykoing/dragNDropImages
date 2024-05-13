@@ -19,7 +19,9 @@
     <div data-dataset-action="nextPage"></div>
   </VueDraggable>
   <br />
-  <div><strong>Перетащить на следующую страницу</strong></div>
+  <div class="drag-to-next-page">
+    <strong>Перетащить на следующую страницу</strong>
+  </div>
   <br />
   <div>Full array: {{ images }}</div>
   <div>Page array: {{ imagesOnPage }}</div>
@@ -111,5 +113,10 @@ const sortByOrd = () => {
 .ghost {
   opacity: 0.5;
   background: #c8ebfb;
+}
+.drag-to-next-page {
+  width: 20%;
+  padding: 10px;
+  border: 1px solid black;
 }
 </style>
