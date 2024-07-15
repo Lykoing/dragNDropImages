@@ -1,5 +1,6 @@
 <template>
   <VueDraggable
+    v-if="imagesOnPage.length != 0"
     ref="el"
     v-model="imagesOnPage"
     class="pics"
@@ -15,11 +16,10 @@
       :key="index"
       :data-dataset-id="image.id"
     />
-    <br />
-    <div data-dataset-action="nextPage"></div>
+    <div v-if="currPage + 1 != totalPages" data-dataset-action="nextPage"></div>
   </VueDraggable>
-  <br />
-  <div class="drag-to-next-page">
+
+  <div v-if="currPage + 1 != totalPages" class="drag-to-page">
     <strong>Перетащить на следующую страницу</strong>
   </div>
   <br />
@@ -53,12 +53,19 @@ const nexPageDragging = ref(null);
 
 const firstRow = ref(0);
 const rowsOnPage = ref(3);
+const currPage = ref(0);
 
 const imagesOnPage = ref(
   images.value.slice(firstRow.value, firstRow.value + rowsOnPage.value)
 );
+const totalPages = ref(Math.ceil(images.value.length / rowsOnPage.value));
 
-const changeOrd = () => {
+const changeOrd = (event) => {
+  const currImageID = event.item.dataset.datasetId;
+
+  if (!imagesOnPage.value.find((img) => img.id == currImageID)) {
+    imagesOnPage.value.push(images.value.find((img) => img.id == currImageID));
+  }
   imagesOnPage.value.forEach((img, index) => {
     img.ord = index + firstRow.value;
     const targetImg = images.value.find((_img) => _img.id === img.id);
@@ -72,23 +79,29 @@ const onMove = (moveEvent) => {
     moveEvent.related.dataset.datasetAction === "nextPage" &&
     firstRow.value + rowsOnPage.value < images.value.length
   ) {
+    firstRow.value = (currPage.value + 1) * rowsOnPage.value;
+    currPage.value++;
+    updatePageArray();
+
     const targetImgId = moveEvent.dragged.dataset.datasetId;
     const targetImgIndex = images.value.findIndex(
       (img) => img.id == targetImgId
     );
-    [
-      images.value[firstRow.value + rowsOnPage.value].ord,
-      images.value[targetImgIndex].ord,
-    ] = [
-      images.value[targetImgIndex].ord,
-      images.value[firstRow.value + rowsOnPage.value].ord,
-    ];
+
+    // [
+    //   images.value[firstRow.value + rowsOnPage.value].ord,
+    //   images.value[targetImgIndex].ord,
+    // ] = [
+    //   images.value[targetImgIndex].ord,
+    //   images.value[firstRow.value + rowsOnPage.value].ord,
+    // ];
     sortByOrd();
     updatePageArray();
   }
 };
-const onPage = () => {
-  updatePageArray();
+const onPage = (pageState) => {
+  currPage.value = pageState.page;
+  resetPageArray();
 };
 
 const updatePageArray = () => {
@@ -96,6 +109,16 @@ const updatePageArray = () => {
     firstRow.value,
     firstRow.value + rowsOnPage.value
   );
+};
+
+const resetPageArray = () => {
+  imagesOnPage.value = [];
+  setTimeout(() => {
+    imagesOnPage.value = images.value.slice(
+      firstRow.value,
+      firstRow.value + rowsOnPage.value
+    );
+  }, 4);
 };
 
 const sortByOrd = () => {
@@ -114,7 +137,7 @@ const sortByOrd = () => {
   opacity: 0.5;
   background: #c8ebfb;
 }
-.drag-to-next-page {
+.drag-to-page {
   width: 20%;
   padding: 10px;
   border: 1px solid black;
