@@ -1,16 +1,41 @@
 <template>
+  {{ imagesOnPage.length }}
+  {{ imagesOnPage }}
+  <br />
+  {{ imagesOnNextPage.length }}
+  {{ imagesOnNextPage }}
   <VueDraggable
     v-if="imagesOnPage.length != 0"
     ref="el"
     v-model="imagesOnPage"
     class="pics"
     ghostClass="ghost"
+    group="images"
     :animation="150"
     @end="changeOrd"
     @move="(event) => onMove(event)"
   >
     <img
       v-for="(image, index) in imagesOnPage"
+      :src="image?.url"
+      alt="silly cat"
+      :key="index"
+      :data-dataset-id="image.id"
+    />
+    <div v-if="currPage + 1 != totalPages" data-dataset-action="nextPage"></div>
+  </VueDraggable>
+
+  <VueDraggable
+    v-if="imagesOnNextPage.length != 0"
+    ref="el"
+    v-model="imagesOnNextPage"
+    class="pics"
+    ghostClass="ghost"
+    group="images"
+    :animation="150"
+  >
+    <img
+      v-for="(image, index) in imagesOnNextPage"
       :src="image?.url"
       alt="silly cat"
       :key="index"
@@ -58,14 +83,13 @@ const currPage = ref(0);
 const imagesOnPage = ref(
   images.value.slice(firstRow.value, firstRow.value + rowsOnPage.value)
 );
+
+const imagesOnNextPage = ref([]);
 const totalPages = ref(Math.ceil(images.value.length / rowsOnPage.value));
 
 const changeOrd = (event) => {
-  const currImageID = event.item.dataset.datasetId;
+  // const currImageID = event.item.dataset.datasetId;
 
-  if (!imagesOnPage.value.find((img) => img.id == currImageID)) {
-    imagesOnPage.value.push(images.value.find((img) => img.id == currImageID));
-  }
   imagesOnPage.value.forEach((img, index) => {
     img.ord = index + firstRow.value;
     const targetImg = images.value.find((_img) => _img.id === img.id);
@@ -79,10 +103,11 @@ const onMove = (moveEvent) => {
     moveEvent.related.dataset.datasetAction === "nextPage" &&
     firstRow.value + rowsOnPage.value < images.value.length
   ) {
-    firstRow.value = (currPage.value + 1) * rowsOnPage.value;
-    currPage.value++;
-    updatePageArray();
-
+    imagesOnNextPage.value.length = 0;
+    imagesOnNextPage.value = images.value.slice(
+      firstRow.value + rowsOnPage.value,
+      firstRow.value + 2 * rowsOnPage.value
+    );
     const targetImgId = moveEvent.dragged.dataset.datasetId;
     const targetImgIndex = images.value.findIndex(
       (img) => img.id == targetImgId
